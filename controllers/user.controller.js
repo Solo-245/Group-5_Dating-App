@@ -19,19 +19,36 @@ const handleErrors = (error) => {
    return errors;
 };
 
-
 const sign_up = async (req, res) => {
-   const { email, password} = req.body;
-   try {
+    const {
+        name,
+        dateOfBirth,
+        gender,
+        interestedIn,
+        hobbies,
+        bio,
+        email,
+        password
+    } = req.body; 
 
-      const user = await User.create({ email, password });
-      res.status(201).json({ data: user, message: "User created successfully" });
-   } catch(error) {
-     const errors = handleErrors(error);
-       res.status(400).json({ errors });
-   }
-}; 
+    try {
+        const user = await User.create({
+            name,
+            dateOfBirth,
+            gender,
+            interestedIn,
+            hobbies,
+            bio,
+            email,
+            password
+        });
 
+        res.status(201).json({ data: user, message: "User created successfully" });
+    } catch (error) {
+        const errors = handleErrors(error);
+        res.status(400).json({ errors });
+    }
+};
 
 const sign_in = async () => {
     //const { email, password} = req.body;
