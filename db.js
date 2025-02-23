@@ -5,13 +5,7 @@ dotenv.config();
 
 const connectToDB = async () => {
    try{
-      await mongoose.connect(process.env.MONGO_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-            serverSelectionTimeoutMS: 5000, // Wait 5s before timing out
-            socketTimeoutMS: 45000, // Close sockets after 45s inactivity
-            family: 4, // Force IPv4 to avoid IPv6 connection issues
-        });
+      await mongoose.connect(process.env.MONGO_URI)
       console.log("✅ Database Connected Succesfully")
 
    } catch (error) {
