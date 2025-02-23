@@ -95,6 +95,62 @@ const sign_in = async (req, res) => {
    }
 }; 
 
+// Get Users by Hobby
+const get_users_by_hobby = async (req, res) => {
+    try {
+        let { hobby } = req.query;
 
+        if (!hobby) {
+            return res.status(400).json({ success: false, message: "Please provide at least one hobby to filter users" });
+        }
 
-module.exports = { sign_up, sign_in, }
+        const hobbiesArray = Array.isArray(hobby) ? hobby : hobby.split(",");
+
+        const users = await User.find({
+            hobbies: { $in: hobbiesArray.map(h => new RegExp(h.trim(), "i")) }
+        });
+
+        if (users.length === 0) {
+            return res.status(404).json({ success: false, message: "No users found with these hobbies" });
+        }
+
+        res.status(200).json({
+            success: true,
+            count: users.length,
+            message: "Users retrieved successfully",
+            data: users
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Something went wrong", error: error.message });
+    }
+};
+
+// Get All Users with Pagination (15 per page)
+const get_all_users = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 15;
+        const skip = (page - 1) * limit;
+
+        const users = await User.find().skip(skip).limit(limit);
+        const totalUsers = await User.countDocuments();
+
+        if (users.length === 0) {
+            return res.status(404).json({ success: false, message: "No users found" });
+        }
+
+        res.status(200).json({
+            success: true,
+            totalUsers,
+            totalPages: Math.ceil(totalUsers / limit),
+            currentPage: page,
+            usersPerPage: limit,
+            message: "Users retrieved successfully",
+            data: users
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Something went wrong", error: error.message });
+    }
+};
+
+module.exports = { sign_up, sign_in, get_users_by_hobby, get_all_users,}
