@@ -39,7 +39,20 @@ bio: {
       type: String,
       required: [true, "Password is required"],
       minlength: [8, "Password must be at least 8 characters"]
-   }},
+   },
+
+   deleted: {
+      type: Boolean,
+      default:false,
+   },
+
+   deletedAt: {
+      type: Data,
+      default: null
+   },
+},
+
+
    {
       timestamps: true
    }

@@ -1,3 +1,4 @@
+const mongoose = require ('mongoose');
 const User = require ('../models/user.js');
 const bcrypt = require ('bcrypt');
 const jwt = require ('jsonwebtoken');
@@ -151,6 +152,58 @@ const get_all_users = async (req, res) => {
     } catch (error) {
         res.status(500).json({ success: false, message: "Something went wrong", error: error.message });
     }
+
+    //Delete request to delete  a user profile
+    const delete_profile = async (req, res) => {
+        try{
+            const UserId = req.user.id;
+            const User = await User.findById(UserId)
+            if (!UserId){
+                res.status(401).json({success:false, message:"User not found"}) }
+                res.status(200).json({success:true, message:"User deleted Successfully"})
+        } catch (error){
+            res.status(500).json({success:false, message:"something went wrong"})
+        }
+    }
+
+
+    // soft delete of user profile
+
+    const soft_delete_profile = async (req, res) => {
+        try {
+            const UserId = req.user.id;
+            if (!UserId) {
+                res.status(401).json({sucess:false , message: "User not found"})
+            }
+
+            // Mark user as deleted but keep the record in the database
+            User.deleted = true;
+            User.deletedAt = new Date();
+            await User.save();
+
+            res.status(200).json({success:true, message: "profile deleted successfully"})
+        }
+        catch (error) {
+            res.status(500).json({sucess:false, message: "server error"})
+        }
+    }
+
+    //Restore user profile
+    const restore_profile = async (req, res) => {
+        try{
+            const UserId = req.user.id;
+            if (!UserId ||User.deleted){
+                res.status(401).json({sucess:false, message:"User not found"})
+            }
+            // re-activate user
+            User.deleted = false;
+            User.deletedAt = null;
+            await User.save();
+            res.status(200).json({sucess:true, message:"profile restored successfully"})
+        } catch (error){
+            res.status(500).json({success:false, message:"server error"})
+        }
+    }
 };
 
-module.exports = { sign_up, sign_in, get_users_by_hobby, get_all_users,}
+module.exports = { sign_up, sign_in, get_users_by_hobby, get_all_users, delete_profile, soft_delete_profile, restore_profile}
