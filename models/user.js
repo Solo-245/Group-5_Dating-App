@@ -40,19 +40,14 @@ const userSchema = new mongoose.Schema({
       required: [true, "Password is required"],
       minlength: [8, "Password must be at least 8 characters"]
    },
-
-
    deleted: {
       type: Boolean,
       default:false,
    },
-
    deletedAt: {
-      type: Data,
+      type: Date,
       default: null
    },
-},
-
    reported: { 
       type: Boolean, 
       default: false 
@@ -62,7 +57,6 @@ const userSchema = new mongoose.Schema({
       default: [] 
    }
 },
-
    {
       timestamps: true
    }
