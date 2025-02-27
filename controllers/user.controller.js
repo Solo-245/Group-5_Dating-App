@@ -189,7 +189,22 @@ const sendGift = async (req, res) => {
     }
 };
 
+// Get users based on interestedIn preference
+const getUsersByPreference = async (req, res) => {
+    try {
+        // gender represents the gender of the user making the request
+        // interestedIn represents who they want to match with
+        const { gender, interestedIn } = req.query;
+        
+        // Find users whose:
+        // 1. gender matches what we're looking for (interestedIn)
+        // 2. who are interested in our gender
+        const users = await User.find({
+            gender: interestedIn,             
+            'interestedIn': gender        
+        }).select('name _id');
 
+<<<<<<< Updated upstream
 
 // Get Users by Hobby
 const get_users_by_hobby = async (req, res) => {
@@ -311,3 +326,19 @@ module.exports = {
 }
 
 
+=======
+        res.status(200).json({
+            success: true,
+            count: users.length,
+            data: users
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching users by preference',
+            error: error.message
+        });
+    }
+};
+module.exports = { sign_up, sign_in, getUsersByPreference, }
+>>>>>>> Stashed changes
