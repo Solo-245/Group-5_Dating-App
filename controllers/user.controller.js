@@ -192,19 +192,58 @@ const sendGift = async (req, res) => {
 // Get users based on interestedIn preference
 const getUsersByPreference = async (req, res) => {
     try {
-        // gender represents the gender of the user making the request
-        // interestedIn represents who they want to match with
-        const { gender, interestedIn } = req.query;
-        
-        // Find users whose:
-        // 1. gender matches what we're looking for (interestedIn)
-        // 2. who are interested in our gender
-        const users = await User.find({
-            gender: interestedIn,             
-            'interestedIn': gender        
-        }).select('name _id');
+        const { gender, interestedIn, page = 1, limit = 10, hobby } = req.query;
 
-<<<<<<< Updated upstream
+        if (!gender || !interestedIn) {
+            return res.status(400).json({
+                success: false,
+                message: 'Gender and interestedIn parameters are required'
+            });
+        }
+
+        const query = {
+            gender: gender, // Match gender exactly
+            interestedIn: { $in: [interestedIn] } // Match interestedIn array
+        };
+
+        // Add hobby filter if provided
+        if (hobby) {
+            query.hobbies = { $regex: hobby, $options: 'i' };
+        }
+
+        console.log('Query:', query); // Check the constructed query
+
+        const users = await User.find(query)
+            .select('name _id hobbies')
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit));
+
+        const totalUsers = await User.countDocuments(query);
+
+        if (users.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No users found matching the preference'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            count: users.length,
+            totalUsers,
+            totalPages: Math.ceil(totalUsers / limit),
+            currentPage: parseInt(page),
+            data: users
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching users by preference',
+            error: error.message
+        });
+    }
+};
+
 
 // Get Users by Hobby
 const get_users_by_hobby = async (req, res) => {
@@ -322,23 +361,6 @@ const restore_profile = async (req, res) => {
 module.exports = {
     sign_up, sign_in, get_users_by_hobby, get_all_users, 
     reportProfile, sendLoveRequest, sendGift,
-    delete_profile, soft_delete_profile, restore_profile
+    delete_profile, soft_delete_profile, restore_profile,
+    getUsersByPreference
 }
-
-
-=======
-        res.status(200).json({
-            success: true,
-            count: users.length,
-            data: users
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Error fetching users by preference',
-            error: error.message
-        });
-    }
-};
-module.exports = { sign_up, sign_in, getUsersByPreference, }
->>>>>>> Stashed changes

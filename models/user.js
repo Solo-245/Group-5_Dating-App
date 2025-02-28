@@ -4,26 +4,6 @@ const { isEmail } = require('validator');
 
 const userSchema = new mongoose.Schema({
    name: {
-<<<<<<< Updated upstream
-      type: String,
-      required: [true, "Name is required"]
-   },
-   dateOfBirth: {
-      type: Date,
-      required: [true, "Date of birth is required"]
-   },
-   gender: {
-      type: String,
-      required: [true, "Gender is required"],
-      enum: ['male', 'female', 'other']
-   },
-   interestedIn: [{
-      type: String,
-      enum: ['men', 'women', 'both', 'other'],
-      required: true
-   }],
-   email: {
-=======
     type: String,
     required: [true, "Name is required"]
 },
@@ -42,7 +22,6 @@ interestedIn: [{
     required: true
 }],
    email:{
->>>>>>> Stashed changes
       type: String,
       required: [true, "Email is required"],
       unique: true,
