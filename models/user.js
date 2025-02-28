@@ -83,28 +83,6 @@ interestedIn: [{
    }
 );
 
-import React, { useState } from "react";
-import EmojiPicker from "emoji-picker-react";
-
-const Chat = () => {
-  const [message, setMessage] = useState("");
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-
-  const onEmojiClick = (emojiObject) => {
-    setMessage((prevMessage) => prevMessage + emojiObject.emoji);
-  };
-
-  return (
-    <div>
-      <textarea value={message} onChange={(e) => setMessage(e.target.value)} />
-      <button onClick={() => setShowEmojiPicker(!showEmojiPicker)}>😊</button>
-      {showEmojiPicker && <EmojiPicker onEmojiClick={onEmojiClick} />}
-    </div>
-  );
-};
-
-export default Chat;
-
 // fire a function each time a new document is created
 userSchema.pre('save', async function (next) {
    const saltRound = 10
