@@ -12,13 +12,13 @@ router.post('/sign_up', sign_up);
 router.post('/sign_in', sign_in);
 
 //Delete user profile
-router.delete('/delete_profile', delete_profile)
+router.delete('/delete_profile', authMiddleware, delete_profile)
 
 //soft Delete user profile
-router.delete('/soft_delete_profile', soft_delete_profile) 
+router.delete('/soft_delete_profile', authMiddleware, soft_delete_profile) 
 
 //Restore user profile
-router.post('/restore_profile', restore_profile)
+router.post('/restore_profile', authMiddleware, restore_profile)
 
 //Report Profile
 router.post('/report/:id', authMiddleware, reportProfile);

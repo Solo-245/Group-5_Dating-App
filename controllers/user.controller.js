@@ -325,37 +325,44 @@ const delete_profile = async (req, res) => {
 // soft delete of user profile
 const soft_delete_profile = async (req, res) => {
     try {
-        const UserId = req.user.id;
-        if (!UserId) {
-            res.status(401).json({ sucess: false, message: "User not found" })
+        console.log("req.user:", req.user);
+
+        const userId = req.user.id;  // Corrected: userId instead of UserId
+        const user = await User.findById(userId);  // Fetch the user from the database
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });  // Changed to 404
         }
 
-        // Mark user as deleted but keep the record in the database
-        User.deleted = true;
-        User.deletedAt = new Date();
-        await User.save();
+        // Mark the user as deleted but keep the record in the database
+        user.deleted = true;
+        user.deletedAt = new Date();
+        await user.save();  // Save the updated user document
 
-        res.status(200).json({ success: true, message: "profile deleted successfully" })
-    }
-    catch (error) {
-        res.status(500).json({ sucess: false, message: "server error" })
+        res.status(200).json({ success: true, message: "Profile soft deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Server error", error: error.message });
     }
 };
 
 //Restore user profile
 const restore_profile = async (req, res) => {
     try {
-        const UserId = req.user.id;
-        if (!UserId || User.deleted) {
-            res.status(401).json({ sucess: false, message: "User not found" })
+        const userId = req.user.id;  // Corrected: userId instead of UserId
+        const user = await User.findById(userId);  // Fetch the user from the database
+
+        if (!user || !user.deleted) {
+            return res.status(404).json({ success: false, message: "User not found or not deleted" });  // Changed to 404
         }
-        // re-activate user
-        User.deleted = false;
-        User.deletedAt = null;
-        await User.save();
-        res.status(200).json({ sucess: true, message: "profile restored successfully" })
+
+        // Re-activate the user by setting deleted to false
+        user.deleted = false;
+        user.deletedAt = null;
+        await user.save();  // Save the updated user document
+
+        res.status(200).json({ success: true, message: "Profile restored successfully" });
     } catch (error) {
-        res.status(500).json({ success: false, message: "server error" })
+        res.status(500).json({ success: false, message: "Server error", error: error.message });
     }
 };
 
