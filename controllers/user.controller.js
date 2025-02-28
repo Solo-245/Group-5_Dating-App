@@ -307,14 +307,17 @@ const get_all_users = async (req, res) => {
 //Delete request to delete  a user profile
 const delete_profile = async (req, res) => {
     try {
-        const UserId = req.user.id;
-        const User = await User.findById(UserId)
-        if (!UserId) {
-            res.status(401).json({ success: false, message: "User not found" })
+        const userId = req.user.id;
+        const user = await User.findById(userId);
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
         }
-        res.status(200).json({ success: true, message: "User deleted Successfully" })
+
+        await User.findByIdAndDelete(userId);
+        res.status(200).json({ success: true, message: 'User deleted successfully' });
     } catch (error) {
-        res.status(500).json({ success: false, message: "something went wrong" })
+        res.status(500).json({ success: false, message: 'Something went wrong', error: error.message });
     }
 };
 
