@@ -192,19 +192,58 @@ const sendGift = async (req, res) => {
 // Get users based on interestedIn preference
 const getUsersByPreference = async (req, res) => {
     try {
-        // gender represents the gender of the user making the request
-        // interestedIn represents who they want to match with
-        const { gender, interestedIn } = req.query;
-        
-        // Find users whose:
-        // 1. gender matches what we're looking for (interestedIn)
-        // 2. who are interested in our gender
-        const users = await User.find({
-            gender: interestedIn,             
-            'interestedIn': gender        
-        }).select('name _id');
+        const { gender, interestedIn, page = 1, limit = 10, hobby } = req.query;
 
-<<<<<<< Updated upstream
+        if (!gender || !interestedIn) {
+            return res.status(400).json({
+                success: false,
+                message: 'Gender and interestedIn parameters are required'
+            });
+        }
+
+        const query = {
+            gender: gender, // Match gender exactly
+            interestedIn: { $in: [interestedIn] } // Match interestedIn array
+        };
+
+        // Add hobby filter if provided
+        if (hobby) {
+            query.hobbies = { $regex: hobby, $options: 'i' };
+        }
+
+        console.log('Query:', query); // Check the constructed query
+
+        const users = await User.find(query)
+            .select('name _id hobbies')
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit));
+
+        const totalUsers = await User.countDocuments(query);
+
+        if (users.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No users found matching the preference'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            count: users.length,
+            totalUsers,
+            totalPages: Math.ceil(totalUsers / limit),
+            currentPage: parseInt(page),
+            data: users
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching users by preference',
+            error: error.message
+        });
+    }
+};
+
 
 // Get Users by Hobby
 const get_users_by_hobby = async (req, res) => {
@@ -268,14 +307,17 @@ const get_all_users = async (req, res) => {
 //Delete request to delete  a user profile
 const delete_profile = async (req, res) => {
     try {
-        const UserId = req.user.id;
-        const User = await User.findById(UserId)
-        if (!UserId) {
-            res.status(401).json({ success: false, message: "User not found" })
+        const userId = req.user.id;
+        const user = await User.findById(userId);
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
         }
-        res.status(200).json({ success: true, message: "User deleted Successfully" })
+
+        await User.findByIdAndDelete(userId);
+        res.status(200).json({ success: true, message: 'User deleted successfully' });
     } catch (error) {
-        res.status(500).json({ success: false, message: "something went wrong" })
+        res.status(500).json({ success: false, message: 'Something went wrong', error: error.message });
     }
 };
 
@@ -283,37 +325,44 @@ const delete_profile = async (req, res) => {
 // soft delete of user profile
 const soft_delete_profile = async (req, res) => {
     try {
-        const UserId = req.user.id;
-        if (!UserId) {
-            res.status(401).json({ sucess: false, message: "User not found" })
+        console.log("req.user:", req.user);
+
+        const userId = req.user.id;  // Corrected: userId instead of UserId
+        const user = await User.findById(userId);  // Fetch the user from the database
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });  // Changed to 404
         }
 
-        // Mark user as deleted but keep the record in the database
-        User.deleted = true;
-        User.deletedAt = new Date();
-        await User.save();
+        // Mark the user as deleted but keep the record in the database
+        user.deleted = true;
+        user.deletedAt = new Date();
+        await user.save();  // Save the updated user document
 
-        res.status(200).json({ success: true, message: "profile deleted successfully" })
-    }
-    catch (error) {
-        res.status(500).json({ sucess: false, message: "server error" })
+        res.status(200).json({ success: true, message: "Profile soft deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Server error", error: error.message });
     }
 };
 
 //Restore user profile
 const restore_profile = async (req, res) => {
     try {
-        const UserId = req.user.id;
-        if (!UserId || User.deleted) {
-            res.status(401).json({ sucess: false, message: "User not found" })
+        const userId = req.user.id;  // Corrected: userId instead of UserId
+        const user = await User.findById(userId);  // Fetch the user from the database
+
+        if (!user || !user.deleted) {
+            return res.status(404).json({ success: false, message: "User not found or not deleted" });  // Changed to 404
         }
-        // re-activate user
-        User.deleted = false;
-        User.deletedAt = null;
-        await User.save();
-        res.status(200).json({ sucess: true, message: "profile restored successfully" })
+
+        // Re-activate the user by setting deleted to false
+        user.deleted = false;
+        user.deletedAt = null;
+        await user.save();  // Save the updated user document
+
+        res.status(200).json({ success: true, message: "Profile restored successfully" });
     } catch (error) {
-        res.status(500).json({ success: false, message: "server error" })
+        res.status(500).json({ success: false, message: "Server error", error: error.message });
     }
 };
 
@@ -322,23 +371,6 @@ const restore_profile = async (req, res) => {
 module.exports = {
     sign_up, sign_in, get_users_by_hobby, get_all_users, 
     reportProfile, sendLoveRequest, sendGift,
-    delete_profile, soft_delete_profile, restore_profile
+    delete_profile, soft_delete_profile, restore_profile,
+    getUsersByPreference
 }
-
-
-=======
-        res.status(200).json({
-            success: true,
-            count: users.length,
-            data: users
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Error fetching users by preference',
-            error: error.message
-        });
-    }
-};
-module.exports = { sign_up, sign_in, getUsersByPreference, }
->>>>>>> Stashed changes
